@@ -96,6 +96,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/dist
       - ~/.npm:/root/.npm  # Cache npm packages between builds
     environment:
       - DATABASE_HOST=postgres

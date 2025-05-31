@@ -152,6 +152,18 @@ const waitForPostgres = async () => {
 
     // Now connect to the newly created database
     console.log('\n=== Connecting to Application Database ===');
+    
+    // Build the project to generate JavaScript files
+    console.log('🔨 Building the project...');
+    const { execSync } = require('child_process');
+    try {
+      execSync('npm run build', { stdio: 'inherit' });
+      console.log('✅ Project built successfully');
+    } catch (error) {
+      console.error('❌ Failed to build project:', error);
+      throw error;
+    }
+    
     const dataSource = new DataSource({
       type: 'postgres',
       host: process.env.DATABASE_HOST || 'postgres',
@@ -159,11 +171,15 @@ const waitForPostgres = async () => {
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: dbName,
-      entities: [path.join(__dirname, '../src/**/*.entity{.ts,.js}')],
-      migrations: [path.join(__dirname, '../src/migrations/*{.ts,.js}')],
+      entities: [
+        path.join(__dirname, '../dist/**/*.entity.js')
+      ],
+      migrations: [
+        path.join(__dirname, '../dist/src/migrations/*.js')
+      ],
       migrationsRun: false,
       synchronize: false,
-      logging: ['error', 'schema', 'warn', 'info', 'log', 'migration'],
+      logging: ['error', 'schema', 'warn', 'info', 'log', 'migration', 'query'],
       extra: {
         ssl: false,
         connectionLimit: 5,
