@@ -1,0 +1,6 @@
+export const RATE_LIMIT = {
+  MAX_REQUESTS: 100,
+  WINDOW_IN_SECONDS: 60,
+  BLOCK_DURATION_IN_MINUTES: 5,
+  KEY_PREFIX: 'auth_rate_limit',
+};

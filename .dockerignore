@@ -1,0 +1,138 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Testing
+coverage
+
+# Production
+build
+
+# Misc
+.DS_Store
+Thumbs.db
+.git
+.gitignore
+README.md
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Environment files
+!/.env
+!/.env.*
+
+# Logs
+logs
+*.log
+
+# TypeScript
+*.ts.map
+*.js.map
+
+# Cache
+dist
+*.cache
+.cache
+
+# Build output
+dist
+*.dist
+
+# Debug
+*.debug
+*.debug.log
+
+# Editor
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Temp
+*.tmp
+*.temp
+.temp
+.tmp
+
+# Local development
+.docker
+.dockerignore
+.docker-compose.yml
+
+# Database
+*.sqlite3
+*.db
+*.sql
+
+# Other
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.swo
+*.swp
+*.tmp
+*.temp
+*.~
+~*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.sublime-project
+*.sublime-workspace
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+*.log
+*.pot

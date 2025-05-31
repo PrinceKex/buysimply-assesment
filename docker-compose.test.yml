@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=${DB_USER:-postgres}
+      - DATABASE_PASSWORD=${DB_PASSWORD:-postgres}
+      - DATABASE_NAME=${DB_NAME:-buysimply}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
