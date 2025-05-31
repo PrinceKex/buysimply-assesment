@@ -83,13 +83,14 @@ services:
     working_dir: /app
     command: >
       sh -c "
-      echo '=== Installing dependencies ===' && \
+      echo '=== Installing system dependencies ===' && \
       apk add --no-cache curl && \
+      echo '=== Configuring npm ===' && \
       npm config set update-notifier false && \
       npm cache clean --force && \
       echo '=== Installing npm packages ===' && \
       npm install -g npm@latest --no-audit --prefer-offline && \
-      npm install dotenv typeorm @types/node ts-node --no-audit --prefer-offline --no-fund && \
+      npm install --no-audit --prefer-offline --no-fund && \
       echo '=== Starting migrations ===' && \
       node scripts/run-migrations.js"
     volumes:
@@ -102,16 +103,16 @@ services:
       - DATABASE_USER=${DB_USER:-postgres}
       - DATABASE_PASSWORD=${DB_PASSWORD:-postgres}
       - DATABASE_NAME=${DB_NAME:-buysimply}
-      - NODE_ENV=development
-      - DEBUG=typeorm:*
+      - NODE_ENV=${NODE_ENV:-development}
     depends_on:
       postgres:
         condition: service_healthy
+    restart: on-failure
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h postgres -U postgres -d ${DB_NAME:-buysimply}"]
+      test: ["CMD", "pg_isready", "-h", "postgres", "-U", "postgres"]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
       start_period: 10s
 
 volumes:
