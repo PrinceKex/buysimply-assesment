@@ -8,7 +8,7 @@
  */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Role } from 'src/users/entities/role.entity';
+import { Role } from 'src/roles/entities/role.entity';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 

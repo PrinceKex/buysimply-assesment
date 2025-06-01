@@ -1,47 +1,72 @@
-import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { createClient, RedisClientType as BaseRedisClientType } from 'redis';
-import { RedisModuleOptions } from './redis.module';
+import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { RedisClientType as BaseRedisClientType, createClient } from 'redis';
+import { REDIS_OPTIONS, RedisModuleOptions } from './redis.module';
+
+const logger = new Logger('RedisService');
 
 type RedisClient = BaseRedisClientType<any, any, any>;
 
 /**
  * Interface for Redis client operations
  */
-export interface RedisClientType {
-  get: (key: string) => Promise<string | null>;
-  set: (key: string, value: string, options?: { EX?: number }) => Promise<string | null>;
-  del: (key: string | string[]) => Promise<number>;
-  exists: (key: string | string[]) => Promise<number>;
-  expire: (key: string, seconds: number) => Promise<boolean>;
-  keys: (pattern: string) => Promise<string[]>;
-  ttl: (key: string) => Promise<number>;
-  incr: (key: string) => Promise<number>;
-  incrBy: (key: string, increment: number) => Promise<number>;
-  multi: () => any;
-  isOpen: boolean;
-  isReady: boolean;
-  connect: () => Promise<void>;
-  quit: () => Promise<void>;
-  ping: () => Promise<string>;
-}
+// export interface RedisClientType extends RedisClient {
+// 	get: (key: string) => Promise<string | null>;
+// 	set: (
+// 		key: string,
+// 		value: string,
+// 		options?: { EX?: number }
+// 	) => Promise<string | null>;
+// 	del: (key: string | string[]) => Promise<number>;
+// 	exists: (key: string | string[]) => Promise<number>;
+// 	expire: (key: string, seconds: number) => Promise<boolean>;
+// 	keys: (pattern: string) => Promise<string[]>;
+// 	ttl: (key: string) => Promise<number>;
+// 	incr: (key: string) => Promise<number>;
+// 	incrBy: (key: string, increment: number) => Promise<number>;
+// 	multi: () => any;
+// 	isOpen: boolean;
+// 	isReady: boolean;
+// 	connect: () => Promise<RedisClientType>;
+// 	quit: () => Promise<string>;
+// 	ping: () => Promise<string>;
+// 	// Note: We're omitting 'options' from RedisClientType to handle it separately
+// }
 
 /**
  * Redis service implementing RedisClient interface
  * Service for Redis operations
  * Handles connection management and provides Redis client methods
  */
+export const DEFAULT_REDIS_OPTIONS: RedisModuleOptions = {
+  host: 'localhost',
+  port: 6379,
+  retryStrategy: (retries: number) => {
+    if (retries > 5) {
+      return new Error('Max reconnection attempts reached');
+    }
+    return Math.min(retries * 100, 2000);
+  }
+};
+
 @Injectable()
-export class RedisService implements OnModuleInit, OnModuleDestroy, RedisClientType {
+export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client: RedisClient;
   private isInitialized = false;
   private connectionPromise: Promise<void> | null = null;
+  public readonly options: RedisModuleOptions;
 
   constructor(
-    @Inject('REDIS_OPTIONS') private readonly options: RedisModuleOptions
+    @Inject(REDIS_OPTIONS) options: RedisModuleOptions
   ) {
-    if (!options.host || !options.port) {
-      throw new Error('Redis configuration is missing required host and port');
+    this.options = { ...DEFAULT_REDIS_OPTIONS, ...options };
+    
+    if (!this.options.host || !this.options.port) {
+      const error = new Error('Redis configuration is missing required host and port');
+      logger.error(error);
+      throw error;
     }
+    
+    logger.log(`RedisService initialized with host: ${this.options.host}, port: ${this.options.port}`);
   }
 
   async onModuleInit() {
@@ -194,15 +219,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy, RedisClientT
     return this.client?.isReady || false;
   }
 
-  async connect(): Promise<void> {
+  async connect(): Promise<RedisClient> {
     await this.ensureConnected();
+    return this.client;
   }
 
-  async quit(): Promise<void> {
-    if (this.client) {
-      await this.client.quit();
-      this.isInitialized = false;
-    }
+  async quit(): Promise<string> {
+     if (this.client) {
+				const result = await this.client.quit();
+				this.isInitialized = false;
+				return result; // Return the result from the client's quit method
+			}
+			return "OK"; 
   }
 
   async ping(): Promise<string> {

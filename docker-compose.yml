@@ -28,19 +28,20 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      migrations:
-        condition: service_completed_successfully
     volumes:
       - .:/app
       - /app/node_modules
-    command: sh -c "npm run build && npm run start:dev"
+    command: >
+      sh -c "npm run build && 
+             npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./src/data-source.ts && 
+             npm run start:dev"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 120s
 
   # Database service
   postgres:
@@ -65,7 +66,7 @@ services:
     image: redis:7-alpine
     container_name: buysimply-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -75,46 +76,6 @@ services:
       retries: 5
       start_period: 10s
     restart: unless-stopped
-
-  # Migration service
-  migrations:
-    image: node:20-alpine
-    container_name: buysimply-migrations
-    working_dir: /app
-    command: >
-      sh -c "
-      echo '=== Installing system dependencies ===' && \
-      apk add --no-cache curl && \
-      echo '=== Configuring npm ===' && \
-      npm config set update-notifier false && \
-      npm cache clean --force && \
-      echo '=== Installing npm packages ===' && \
-      npm install -g npm@latest --no-audit --prefer-offline && \
-      npm install --no-audit --prefer-offline --no-fund && \
-      echo '=== Starting migrations ===' && \
-      node scripts/run-migrations.js"
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/dist
-      - ~/.npm:/root/.npm  # Cache npm packages between builds
-    environment:
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=${DB_USER:-postgres}
-      - DATABASE_PASSWORD=${DB_PASSWORD:-postgres}
-      - DATABASE_NAME=${DB_NAME:-buysimply}
-      - NODE_ENV=${NODE_ENV:-development}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "pg_isready", "-h", "postgres", "-U", "postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
 
 volumes:
   postgres_data:

@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class InitialMigration1690791533534 implements MigrationInterface {
-    name = 'InitialMigration1690791533534';
+export class InitialMigration0001170000000000 implements MigrationInterface {
+    name = 'InitialMigration0001170000000000';
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Enable UUID extension if not exists
@@ -112,8 +112,15 @@ export class InitialMigration1690791533534 implements MigrationInterface {
                 "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 "deleted_at" TIMESTAMP,
                 "user_id" UUID,
-                CONSTRAINT "UQ_tasks_title_user_id" UNIQUE ("title", "user_id") WHERE "deleted_at" IS NULL
+                CONSTRAINT "UQ_tasks_title_user_id" UNIQUE ("title", "user_id")
             )
+        `);
+        
+        // Create a partial index to enforce uniqueness only for non-deleted tasks
+        await queryRunner.query(`
+            CREATE UNIQUE INDEX IF NOT EXISTS "IDX_tasks_title_user_id_not_deleted" 
+            ON "tasks" ("title", "user_id") 
+            WHERE "deleted_at" IS NULL
         `);
         
         // Add comments to the tasks table
